@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ad-Free Sudoku wajib bisa bahasa mandarin by Ultra</title>
+<style>
+html {
+  color-scheme: light;
+}
+.cloud-box {
+  background: white;
+  border: 3px solid #ccc;
+  border-radius: 30px;
+  padding: 15px 25px;
+  max-width: 300px;
+  font-family: 'Press Start 2P', sans-serif; /* pixel font for retro look */
+  font-size: 14px;
+  color: black;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  position: absolute;
+  bottom: - 20px; /* adjust where you want it */
+  left: 40px; /* adjust depending on your logo position */
+}
+
+/* Text style */
+.intro-text {
+  font-family: monospace; /* RPG vibe */
+  font-size: 14px;
+  color: var(--ink);
+  white-space: pre; /* Keep spacing */
+}
+.logo-img {
+  display: block;
+  margin: 0px auto - 5 auto; /* Center it below the text */
+  max-width: 220px; /* Adjust to your liking */
+  height: auto;
+}
+  :root{
+    --bg: #ffffff; /* Main background */
+    --panel: #f5f5f5; /* Card/panel background */
+    --ink: #000000; /* Text color */
+    --dim: #555555; /* Dimmed text */
+    --acc: #0077cc; /* Accent color */
+    --warn: #cc0000; /* Warning red */
+    --ok: #009966; /* Success green */
+    --grid: #dddddd; /* Light grid lines */
+    --grid2: #bbbbbb; /* Darker section grid lines */
+    --hilite: #e6f2ff; /* Highlight cell */
+    --sel: #99ccff; /* Selected outline */
+    --num: #003366; /* Number text */
+    --shadow: 0 10px 30px rgba(0,0,0,.1);
+    --cell: 56px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    color:var(--ink);
+    background: radial-gradient(1200px 600px at 30% -10%, #ffffff 0%, #f0f0f0 45%) fixed;
+  }
+  .wrap{
+    min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .app{
+    width:min(1100px, 96vw); display:grid; grid-template-columns: 1fr 380px; gap:16px;
+  }
+  @media (max-width: 980px){
+    .app{grid-template-columns: 1fr}
+  }
+  .card{
+    background: linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0)) , var(--panel);
+    border:1px solid #cccccc; border-radius:16px; box-shadow:var(--shadow);
+  }
+  .topbar{
+    display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid #dddddd;
+  }
+  .title{font-weight:700; letter-spacing:.4px}
+  .spacer{flex:1}
+  select,button{
+    background:#ffffff; color:var(--ink); border:1px solid #cccccc; border-radius:10px; padding:10px 12px;
+    font:inherit; cursor:pointer;
+  }
+  button .small{font-size:12px; color:var(--dim)}
+  button.ghost{background:transparent}
+  button.primary{background: #e6f2ff; border-color:#99ccff}
+  button.primary:hover{filter:brightness(1.05)}
+  .hud{
+    display:flex; gap:10px; flex-wrap:wrap; padding:12px 14px; border-bottom:1px solid #dddddd;
+  }
+  .chip{
+    background:#fafafa; padding:8px 12px; border-radius:999px; border:1px solid #cccccc; color:var(--dim)
+  }
+  .chip b{color:var(--ink)}
+  .lives{letter-spacing:.25em; color:var(--warn)}
+  .boardwrap{ padding:14px; display:flex; justify-content:center; align-items:center}
+  .board{
+    display:grid; grid-template-columns: repeat(9, var(--cell)); grid-template-rows: repeat(9, var(--cell));
+    gap:0; background:var(--grid); border:2px solid var(--grid2); border-radius:12px; overflow:hidden;
+    touch-action: manipulation;
+  }
+  .cell{
+    position:relative; width:var(--cell); height:var(--cell); display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:22px; user-select:none; -webkit-tap-highlight-color:transparent;
+    background:#ffffff; border:1px solid #cccccc;
+  }
+  .cell:nth-child(3n){border-right:2px solid var(--grid2)}
+  .cell:nth-child(n+19):nth-child(-n+27),
+  .cell:nth-child(n+46):nth-child(-n+54){border-bottom:2px solid var(--grid2)}
+  .given{color:#555555}
+  .editable{cursor:pointer}
+  .cell.highlight{background:var(--hilite)}
+  .cell.sameval{background:#d9eaff}
+  .cell.selected{outline:3px solid var(--sel); z-index:2}
+  .cell.error{background:#ffe6e6; animation: shake .25s}
+  @keyframes shake{ 25%{transform:translateX(-2px)} 50%{transform:translateX(2px)} }
+  .notes{ position:absolute; inset:2px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:2px; font-size:10px; color:#666666; opacity:.95}
+  .note{display:flex; align-items:center; justify-content:center; }
+  .pad{
+    padding:12px; display:grid; grid-template-columns: repeat(5, 1fr); gap:10px;
+  }
+  .pad button{
+    height:52px; border-radius:12px; background:#ffffff; border-color:#cccccc;
+  }
+  .pad .danger{border-color:#cc0000; background:#ffe6e6; color:#cc0000}
+  .pad .accent{border-color:#99ccff; background:#e6f2ff; color:#003366}
+  .side{
+    display:flex; flex-direction:column; overflow:hidden
+  }
+  .side .card{margin-bottom:16px}
+  .help{padding:12px 14px; color:var(--dim); line-height:1.5}
+  .footer{padding:10px 14px; color:var(--dim); text-align:center}
+  .hidden{display:none!important}
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.2);
+    display:flex; align-items:center; justify-content:center; z-index:10; backdrop-filter: blur(4px);
+  }
+  .modal{ width:min(520px, 90vw); border-radius:16px; }
+  .center{ text-align:center; padding:22px }
+  .big{font-size:26px; font-weight:800}
+  .sub{color:var(--dim); margin-top:6px}
+  .btnrow{display:flex; gap:10px; justify-content:center; padding:16px}
+  .stat{display:inline-flex; gap:8px; align-items:center; padding:8px 12px; background:#fafafa; border:1px solid #cccccc; border-radius:999px; margin:4px}
+  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#f2f2f2; border:1px solid #cccccc; padding:.2em .45em; border-radius:6px; color:#333333}
+  @media (max-width: 520px){
+    :root{--cell: 40px}
+    .pad button{height:44px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="app">
+    <!-- LEFT: Board -->
+    <div class="card">
+      <div class="topbar">
+        <div class="title">Sudoku Wajib Bisa Mandarin by Mr.Ultras — <span id="diffLabel">Easy</span></div>
+        <div class="spacer"></div>
+        <select id="difficulty" title="Difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+          <option value="master">Master</option>
+          <option value="extreme">Extreme</option>
+        </select>
+        <button id="newGame" class="primary">New Game</button>
+      </div>
+      <div class="hud">
+        <div class="chip">Time: <b id="timer">00:00</b></div>
+        <div class="chip">Lives: <b class="lives" id="lives">♥♥♥</b></div>
+        <div class="chip">Notes: <b id="notesState">Off</b></div>
+        <div class="chip">Errors: <b id="errors">0</b></div>
+      </div>
+      <div class="boardwrap"><div id="board" class="board" role="grid" aria-label="Sudoku board"></div></div>
+      <div class="pad">
+        <button class="accent num" data-n="1">1</button>
+        <button class="accent num" data-n="2">2</button>
+        <button class="accent num" data-n="3">3</button>
+        <button class="accent num" data-n="4">4</button>
+        <button class="accent num" data-n="5">5</button>
+        <button class="accent num" data-n="6">6</button>
+        <button class="accent num" data-n="7">7</button>
+        <button class="accent num" data-n="8">8</button>
+        <button class="accent num" data-n="9">9</button>
+        <button id="erase" class="danger">Erase</button>
+        <button id="notes" class="">✎ Notes</button>
+        <button id="undo" class="">↶ Undo</button>
+        <button id="redo" class="">↷ Redo</button>
+        <button id="hint" class="">Hint</button>
+      </div>
+      <div class="footer">Arrow keys to move • <span class="kbd">1–9</span> to fill • <span class="kbd">N</span> notes • <span class="kbd">Backspace</span> erase</div>
+    </div>
+    <!-- RIGHT: Info / Help -->
+    <div class="side">
+      <div class="card">
+        <div class="topbar"><div class="title">Stats</div><div class="spacer"></div></div>
+        <div class="help" id="stats">
+          最佳时间（每个难度）在当地保存。没有数据离开您的设备.
+          <div id="bestTimes" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="topbar"><div class="title">How to play</div><div class="spacer"></div></div>
+        <div class="help">
+          填充9×9网格，使每行、列和3×3块包含1-9。你有3条生命. 输入错误要付出生命代价.
+          切换 <b>Notes</b> 用铅笔给小候选人。长按（或右键单击）数字以快速设置笔记.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ <img src="oia.jpg" alt="My Logo" class="logo-img">
+</section>
+  <div class="intro-text"></div>
+</div>
+<div class="cloud-box">
+  <p id="intro-text"></p>
+</div>
+<!-- Overlays -->
+<div id="overlay" class="overlay hidden" aria-modal="true">
+  <div class="card modal">
+    <div class="center">
+      <div class="big" id="overlayTitle">Paused</div>
+      <div class="sub" id="overlayMsg">Take a breather.</div>
+      <div id="overlayStats"></div>
+    </div>
+    <div class="btnrow">
+      <button id="resume" class="primary">Resume</button>
+      <button id="restart" class="">Restart</button>
+      <button id="overlayNew" class="">New Game</button>
+    </div>
+  </div>
+</div>
+<script>
+const text = "你好！很高兴见到你";
+let i = 0;
+const speed = 50; // ms per character
+
+function typeWriter() {
+  if (i < text.length) {
+    document.getElementById("intro-text").innerHTML += text.charAt(i);
+    i++;
+    setTimeout(typeWriter, speed);
+  }
+}
+
+window.onload = typeWriter;
+/* -----------------------
+   Utility / State
+------------------------*/
+const $ = (q, p=document)=>p.querySelector(q);
+const $$ = (q, p=document)=>Array.from(p.querySelectorAll(q));
+const boardEl = $('#board');
+const diffSel = $('#difficulty');
+const diffLabel = $('#diffLabel');
+const timerEl = $('#timer');
+const livesEl = $('#lives');
+const notesStateEl = $('#notesState');
+const errorsEl = $('#errors');
+const overlay = $('#overlay');
+const overlayTitle = $('#overlayTitle');
+const overlayMsg = $('#overlayMsg');
+const overlayStats = $('#overlayStats');
+
+const DIFF_CONFIG = {
+  easy:   { clues:[40,45] },
+  medium: { clues:[34,39] },
+  hard:   { clues:[28,33] },
+  master: { clues:[24,27] },
+  extreme:{ clues:[17,23] }
+};
+
+let state = {
+  grid: Array(81).fill(0),       // puzzle (0 = empty)
+  sol:  Array(81).fill(0),       // solved
+  given: new Set(),              // indices of givens
+  notes: Array.from({length:81}, ()=> new Set()),
+  selected: -1,
+  lives: 3,
+  errors: 0,
+  notesMode: false,
+  startTs: null,
+  elapsed: 0,
+  timerId: null,
+  undo: [],
+  redo: [],
+  diff: 'easy',
+  finished: false,
+};
+
+const LS_KEY="sudoku_save_v1";
+const LS_BEST="sudoku_best_v1";
+
+/* -----------------------
+   Sudoku Generator/Solver
+------------------------*/
+// Helpers
+const r = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
+function idx(row,col){ return row*9+col }
+function rc(i){ return [Math.floor(i/9), i%9] }
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
+
+function valid(grid, pos, val){
+  const row = Math.floor(pos/9), col = pos%9;
+  for(let c=0;c<9;c++) if(grid[idx(row,c)]===val) return false;
+  for(let r=0;r<9;r++) if(grid[idx(r,col)]===val) return false;
+  const br = Math.floor(row/3)*3, bc = Math.floor(col/3)*3;
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++) if(grid[idx(br+r,bc+c)]===val) return false;
+  return true;
+}
+
+// Backtracking solver; can count solutions up to limit
+function solve(grid, countLimit=1){
+  const g = grid.slice();
+  function backtrack(){
+    let pos=-1, minCnt=10, candidates=null;
+    // choose empty with least candidates
+    for(let i=0;i<81;i++){
+      if(g[i]===0){
+        const cand=[];
+        for(let v=1;v<=9;v++) if(valid(g,i,v)) cand.push(v);
+        if(cand.length===0) return 0;
+        if(cand.length<minCnt){ minCnt=cand.length; candidates=cand; pos=i; if(minCnt===1) break; }
+      }
+    }
+    if(pos===-1) return 1; // solved
+    let total=0;
+    for(const v of candidates){
+      g[pos]=v;
+      total += backtrack();
+      if(total>=countLimit) return total;
+      g[pos]=0;
+    }
+    return total;
+  }
+  const count = backtrack();
+  return {count, solution: g};
+}
+
+// Generate full solution
+function generateSolved(){
+  const g = Array(81).fill(0);
+  const nums = [1,2,3,4,5,6,7,8,9];
+  function backtrack(i=0){
+    if(i===81) return true;
+    const order = shuffle(nums.slice());
+    for(const v of order){
+      if(valid(g,i,v)){ g[i]=v; if(backtrack(i+1)) return true; g[i]=0; }
+    }
+    return false;
+  }
+  backtrack(0);
+  return g;
+}
+
+// Create puzzle by removing cells while keeping unique solution
+function makePuzzle(solution, cluesRange){
+  const [minC, maxC] = cluesRange;
+  const targetClues = r(minC, maxC);
+  const puzzle = solution.slice();
+  const positions = shuffle([...Array(81).keys()]);
+  let removed = 0;
+  for(const p of positions){
+    const old = puzzle[p];
+    if(old===0) continue;
+    puzzle[p]=0;
+    // Force symmetry? optional – here: light symmetry every other removal
+    const sym = 80 - p;
+    let oldSym = null;
+    if(removed%2===0 && puzzle[sym]!==0 && sym!==p){
+      oldSym = puzzle[sym];
+      puzzle[sym]=0;
+    }
+    // Check uniqueness quickly
+    const {count} = solve(puzzle, 2);
+    if(count!==1){
+      puzzle[p]=old;
+      if(oldSym!==null) puzzle[sym]=oldSym;
+    }else{
+      removed++;
+      if(oldSym!==null) removed++;
+      const clues = 81 - (puzzle.filter(x=>x===0).length);
+      if(clues<=targetClues) break;
+    }
+  }
+  return puzzle;
+}
+
+/* -----------------------
+   Rendering
+------------------------*/
+function renderBoard(){
+  boardEl.innerHTML='';
+  for(let i=0;i<81;i++){
+    const v = state.grid[i];
+    const given = state.given.has(i);
+    const cell = document.createElement('div');
+    cell.className = 'cell ' + (given? 'given' : 'editable');
+    cell.setAttribute('role','gridcell');
+    cell.setAttribute('aria-label',`r${Math.floor(i/9)+1}c${i%9+1}`);
+    cell.dataset.i = i;
+    if(v!==0){ cell.textContent = v; cell.dataset.v = v }
+    else{
+      // notes
+      const notes = state.notes[i];
+      if(notes.size>0){
+        const n = document.createElement('div'); n.className='notes';
+        for(let k=1;k<=9;k++){
+          const s=document.createElement('div'); s.className='note'; s.textContent = notes.has(k)? k : '';
+          n.appendChild(s);
+        }
+        cell.appendChild(n);
+      }
+    }
+    boardEl.appendChild(cell);
+  }
+  highlight();
+}
+
+function highlight(){
+  const i = state.selected;
+  const cells = $$('.cell', boardEl);
+  cells.forEach(c=>c.classList.remove('selected','highlight','sameval'));
+  if(i<0) return;
+  const val = state.grid[i];
+  const [row,col] = rc(i);
+  for(let r=0;r<9;r++) cells[idx(r,col)].classList.add('highlight');
+  for(let c=0;c<9;c++) cells[idx(row,c)].classList.add('highlight');
+  const br=Math.floor(row/3)*3, bc=Math.floor(col/3)*3;
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++) cells[idx(br+r,bc+c)].classList.add('highlight');
+  cells[i].classList.add('selected');
+  if(val){
+    cells.forEach((c)=> { if(+c.dataset.v===val) c.classList.add('sameval') });
+  }
+}
+
+function updateHUD(){
+  diffLabel.textContent = cap(state.diff);
+  livesEl.textContent = '♥'.repeat(state.lives);
+  errorsEl.textContent = state.errors;
+  notesStateEl.textContent = state.notesMode ? 'On' : 'Off';
+}
+
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
+
+/* -----------------------
+   Game Control
+------------------------*/
+function newGame(diff = diffSel.value){
+  // Generate solution + puzzle
+  const solution = generateSolved();
+  const puzzle = makePuzzle(solution, DIFF_CONFIG[diff].clues);
+  state.grid = puzzle.slice();
+  state.sol  = solution.slice();
+  state.given = new Set(puzzle.map((v,i)=> v? i : -1).filter(i=>i>=0));
+  state.notes = Array.from({length:81}, ()=> new Set());
+  state.selected = -1;
+  state.lives = 3; state.errors=0; state.finished=false;
+  state.undo=[]; state.redo=[];
+  state.diff = diff;
+  stopTimer(); state.elapsed=0; startTimer();
+  renderBoard(); updateHUD(); save();
+}
+
+function startTimer(){
+  state.startTs = Date.now();
+  state.timerId = setInterval(()=> {
+    state.elapsed++;
+    timerEl.textContent = fmtTime(state.elapsed);
+  }, 1000);
+}
+function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.timerId=null } }
+
+function fmtTime(s){ const m=Math.floor(s/60), ss=s%60; return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0') }
+
+/* -----------------------
+   Input / Actions
+------------------------*/
+function selectCell(i){
+  if(state.finished) return;
+  state.selected = i; highlight();
+}
+function setNumber(n){
+  const i = state.selected;
+  if(i<0 || state.given.has(i)) return;
+  pushUndo();
+  // notes mode?
+  if(state.notesMode){
+    if(state.grid[i]!==0){ state.grid[i]=0 } // switch to notes clears value
+    if(state.notes[i].has(n)) state.notes[i].delete(n); else state.notes[i].add(n);
+    renderBoard(); save(); return;
+  }
+  // place value
+  state.notes[i].clear();
+  state.grid[i] = n;
+  // check against solution
+  if(state.sol[i] !== n){
+    state.grid[i] = 0;
+    state.lives--; state.errors++;
+    flashError(i);
+    if(state.lives<=0){ lose() }
+  }else{
+    // auto clear same notes in peers
+    clearNotesPeers(i, n);
+    // victory?
+    if(state.grid.every((v, k)=> v!==0 && v===state.sol[k])){ win() }
+  }
+  renderBoard(); updateHUD(); save();
+}
+
+function erase(){
+  const i = state.selected;
+  if(i<0 || state.given.has(i)) return;
+  pushUndo();
+  state.grid[i]=0; state.notes[i].clear();
+  renderBoard(); save();
+}
+function toggleNotes(){ state.notesMode = !state.notesMode; updateHUD() }
+
+function hint(){
+  const empties = state.grid.map((v,i)=> v===0? i : -1).filter(i=>i>=0);
+  if(empties.length===0) return;
+  pushUndo();
+  const i = state.selected>=0 && state.grid[state.selected]===0? state.selected : empties[Math.floor(Math.random()*empties.length)];
+  state.grid[i] = state.sol[i];
+  state.notes[i].clear();
+  clearNotesPeers(i, state.sol[i]);
+  renderBoard();
+  if(state.grid.every((v, k)=> v!==0 && v===state.sol[k])){ win() }
+  save();
+}
+
+function clearNotesPeers(i, n){
+  const [row,col] = rc(i);
+  const peers=[];
+  for(let c=0;c<9;c++) peers.push(idx(row,c));
+  for(let r=0;r<9;r++) peers.push(idx(r,col));
+  const br=Math.floor(row/3)*3, bc=Math.floor(col/3)*3;
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++) peers.push(idx(br+r,bc+c));
+  peers.forEach(p=> state.notes[p].delete(n));
+}
+
+function flashError(i){
+  const cell = $(`.cell[data-i="${i}"]`, boardEl);
+  if(!cell) return;
+  cell.classList.add('error'); setTimeout(()=> cell.classList.remove('error'), 300);
+  updateHUD();
+}
+
+/* -----------------------
+   Undo / Redo
+------------------------*/
+function snapshot(){
+  return {
+    grid: state.grid.slice(),
+    notes: state.notes.map(s=> new Set([...s])),
+    selected: state.selected
+  };
+}
+function restore(snap){
+  state.grid = snap.grid.slice();
+  state.notes = snap.notes.map(s=> new Set([...s]));
+  state.selected = snap.selected;
+  renderBoard(); highlight(); save();
+}
+function pushUndo(){ state.undo.push(snapshot()); state.redo.length=0 }
+function doUndo(){ if(!state.undo.length) return; const snap=snapshot(); const prev=state.undo.pop(); state.redo.push(snap); restore(prev) }
+function doRedo(){ if(!state.redo.length) return; const snap=snapshot(); const next=state.redo.pop(); state.undo.push(snap); restore(next) }
+
+/* -----------------------
+   Win/Lose + Overlay
+------------------------*/
+function lose(){
+  state.finished = true; stopTimer();
+  showOverlay("Game Over", "你用了全部3条生命. 想 try again?");
+}
+function win(){
+  state.finished = true; stopTimer();
+  // Best times
+  const best = JSON.parse(localStorage.getItem(LS_BEST)||'{}');
+  const d = state.diff;
+  if(!best[d] || state.elapsed < best[d]) best[d] = state.elapsed;
+  localStorage.setItem(LS_BEST, JSON.stringify(best));
+  showOverlay("You Win! 🎉", "干净的板子，干净的头脑。我们就是这样做的!.");
+}
+function showOverlay(title, msg){
+  overlayTitle.textContent = title;
+  overlayMsg.textContent = msg;
+  overlayStats.innerHTML = `<div class="stat">Time: <b style="margin-left:6px">${fmtTime(state.elapsed)}</b></div>
+                            <div class="stat">Errors: <b style="margin-left:6px">${state.errors}</b></div>`;
+  overlay.classList.remove('hidden');
+}
+function hideOverlay(){ overlay.classList.add('hidden') }
+
+/* -----------------------
+   Save/Load
+------------------------*/
+function save(){
+  const data = {
+    grid: state.grid, sol: state.sol, given: [...state.given],
+    notes: state.notes.map(s=> [...s]),
+    selected: state.selected, lives: state.lives, errors: state.errors,
+    notesMode: state.notesMode, elapsed: state.elapsed, diff: state.diff, finished: state.finished
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+  renderBest();
+}
+function load(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(!raw) return false;
+  try{
+    const d = JSON.parse(raw);
+    state.grid = d.grid; state.sol = d.sol; state.given = new Set(d.given);
+    state.notes = d.notes.map(s=> new Set(s));
+    state.selected = d.selected; state.lives = d.lives; state.errors = d.errors;
+    state.notesMode = d.notesMode; state.elapsed = d.elapsed||0; state.diff = d.diff||'easy';
+    state.finished = !!d.finished;
+    diffSel.value = state.diff; updateHUD(); renderBoard();
+    timerEl.textContent = fmtTime(state.elapsed);
+    if(!state.finished){ startTimer() }
+    return true;
+  }catch(e){ console.warn(e); return false }
+}
+function renderBest(){
+  const best = JSON.parse(localStorage.getItem(LS_BEST)||'{}');
+  const holder = $('#bestTimes');
+  holder.innerHTML = '';
+  for(const k of ['easy','medium','hard','master','extreme']){
+    const t = best[k];
+    const line = document.createElement('div');
+    line.textContent = `${cap(k)} — ${t? fmtTime(t): '—'}`;
+    holder.appendChild(line);
+  }
+}
+
+/* -----------------------
+   Events
+------------------------*/
+boardEl.addEventListener('click', (e)=>{
+  const cell = e.target.closest('.cell');
+  if(!cell) return;
+  const i = +cell.dataset.i;
+  selectCell(i);
+});
+boardEl.addEventListener('contextmenu', (e)=>{ // quick notes by right click
+  e.preventDefault();
+  if(state.selected<0) return;
+  state.notesMode=true; updateHUD();
+});
+
+$('#newGame').addEventListener('click', ()=> newGame(diffSel.value));
+diffSel.addEventListener('change', ()=> { diffLabel.textContent=cap(diffSel.value) });
+
+$('.pad').addEventListener('click', (e)=>{
+  const b = e.target.closest('button');
+  if(!b) return;
+  if(b.classList.contains('num')){
+    const n = +b.dataset.n; setNumber(n);
+  }
+});
+
+$('#erase').addEventListener('click', erase);
+$('#notes').addEventListener('click', toggleNotes);
+$('#undo').addEventListener('click', doUndo);
+$('#redo').addEventListener('click', doRedo);
+$('#hint').addEventListener('click', hint);
+
+// Keyboard
+document.addEventListener('keydown', (e)=>{
+  if(overlay && !overlay.classList.contains('hidden')){
+    if(e.key==='Escape' || e.key==='Enter'){ hideOverlay(); if(!state.finished) startTimer() }
+    return;
+  }
+  const k = e.key;
+  if(k>='1' && k<='9'){ setNumber(+k); }
+  else if(k==='Backspace' || k==='Delete'){ erase() }
+  else if(k==='n' || k==='N'){ toggleNotes() }
+  else if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k)){
+    e.preventDefault();
+    moveSel(k);
+  } else if(k==='Escape'){ // pause
+    stopTimer(); showOverlay('Paused','Stretch your fingers real quick.');
+  }
+});
+
+function moveSel(key){
+  let i = state.selected<0? 40 : state.selected; // center default
+  const [r,c]=rc(i);
+  if(key==='ArrowUp' && r>0) i-=9;
+  if(key==='ArrowDown' && r<8) i+=9;
+  if(key==='ArrowLeft' && c>0) i-=1;
+  if(key==='ArrowRight' && c<8) i+=1;
+  selectCell(i);
+}
+
+// Overlay buttons
+$('#resume').addEventListener('click', ()=> { hideOverlay(); if(!state.finished) startTimer() });
+$('#restart').addEventListener('click', ()=> { hideOverlay(); stopTimer(); // restart same puzzle
+  const saved = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+  if(saved && saved.sol){
+    state.grid = saved.grid.map((v,i)=> state.given?.has(i)? v : 0);
+    state.notes = Array.from({length:81}, ()=> new Set());
+    state.lives=3; state.errors=0; state.finished=false; state.elapsed=0;
+    startTimer(); renderBoard(); updateHUD(); save();
+  } else {
+    newGame(state.diff);
+  }
+});
+$('#overlayNew').addEventListener('click', ()=> { hideOverlay(); newGame(state.diff) });
+
+/* -----------------------
+   Boot
+------------------------*/
+window.addEventListener('load', ()=>{
+  renderBest();
+  if(!load()){ newGame('easy') }
+});
+
+</script>
+</body>
+</html>
